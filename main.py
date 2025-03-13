@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 import plotly.express as px
 
-
+#test
 # OpenAI クライアントの初期化
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
