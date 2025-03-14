@@ -3,7 +3,6 @@ openai
 dotenv
 pandas
 plotly
-json
 datetime
 timedelta
 requests
