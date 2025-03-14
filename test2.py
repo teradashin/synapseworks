@@ -162,88 +162,7 @@ class ImageCaptioningService(AIService):
                     except Exception as e:
                         st.error(f"エラーが発生しました: {str(e)}")
 
-# 感情分析サービス
-class SentimentAnalysisService(AIService):
-    @property
-    def name(self) -> str:
-        return "テキスト感情分析"
-    
-    @property
-    def description(self) -> str:
-        return "入力されたテキストの感情（ポジティブ/ネガティブ）を分析します。"
-    
-    @property
-    def icon(self) -> str:
-        return "😊"
-    
-    def render(self):
-        st.subheader("テキスト感情分析")
-        
-        # テキスト入力
-        text = st.text_area("分析したいテキストを入力してください", height=150)
-        
-        # 分析ボタン
-        if st.button("感情を分析"):
-            if not text:
-                st.error("テキストを入力してください")
-                return
-            
-            with st.spinner("感情を分析中..."):
-                try:
-                    # 新しいOpenAI APIの形式
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {
-                                "role": "system", 
-                                "content": "あなたは感情分析の専門家です。テキストのポジティブさ/ネガティブさを0から10のスケールで評価し、簡単な説明をJSON形式で返してください。" +
-                                           "例: {\"score\": 7, \"sentiment\": \"positive\", \"explanation\": \"理由の説明\"}"
-                            },
-                            {"role": "user", "content": text}
-                        ]
-                    )
-                    
-                    analysis_text = response.choices[0].message.content
-                    # ここでは簡易的な実装のため、本来であればJSON解析をしっかり行う
-                    import json
-                    try:
-                        analysis = json.loads(analysis_text)
-                        
-                        # 結果表示
-                        sentiment = analysis.get("sentiment", "neutral")
-                        score = analysis.get("score", 5)
-                        explanation = analysis.get("explanation", "分析結果がありません")
-                        
-                        # 感情スコアの視覚化
-                        if sentiment.lower() == "positive":
-                            color = "green"
-                            emoji = "😊"
-                        elif sentiment.lower() == "negative":
-                            color = "red"
-                            emoji = "😔"
-                        else:
-                            color = "gray"
-                            emoji = "😐"
-                        
-                        st.markdown(f"### 分析結果 {emoji}")
-                        st.markdown(f"**感情傾向:** {sentiment}")
-                        st.markdown(f"**スコア:** {score}/10")
-                        
-                        # プログレスバーで表示
-                        st.progress(score/10)
-                        
-                        st.markdown(f"**分析の説明:**")
-                        st.markdown(explanation)
-                        
-                    except json.JSONDecodeError:
-                        # JSONとして解析できない場合は生のテキストを表示
-                        st.markdown("### 分析結果")
-                        st.markdown(analysis_text)
-                        
-                except Exception as e:
-                    st.error(f"エラーが発生しました: {str(e)}")
-
-# ZOOMスケジュール登録サービス
+# ZOOMスケジュールサービス
 class ZoomSchedulerService(AIService):
     @property
     def name(self) -> str:
@@ -251,7 +170,7 @@ class ZoomSchedulerService(AIService):
     
     @property
     def description(self) -> str:
-        return "ZOOM会議の予約情報を入力し、Webhookを通じてスケジュールを登録します。"
+        return "ZOOMの会議をスケジュールし、参加用のリンクを生成します。"
     
     @property
     def icon(self) -> str:
@@ -284,7 +203,7 @@ class ZoomSchedulerService(AIService):
             
             # 送信ボタン
             submit_button = st.form_submit_button("会議をスケジュール")
-
+        
         # Webhookへのデータ送信処理
         if submit_button:
             # 日時の結合
@@ -293,8 +212,8 @@ class ZoomSchedulerService(AIService):
             # Webhookに送信するデータ
             webhook_data = {
                 "title": meeting_title,
-                "start_datetime": meeting_datetime.strftime("%Y-%m-%dT%H:%M:%S"),
-                "duration_minutes": duration
+                "startDate": meeting_datetime.strftime("%Y-%m-%dT%H:%M:%S"),
+                "duration": duration
             }
             
             # Webhookエンドポイント
@@ -332,16 +251,10 @@ class ZoomSchedulerService(AIService):
             
             except Exception as e:
                 st.error(f"エラーが発生しました: {str(e)}")
-
-        # 使用方法の説明
-        with st.expander("使用方法"):
-            st.write("""
-            1. 会議タイトルを入力してください。
-            2. 会議の開催日と開始時間を選択してください。
-            3. 会議の所要時間を分単位で選択してください。
-            4. 「会議をスケジュール」ボタンをクリックすると、情報がWebhookに送信されます。
-            5. 処理が完了すると、会議の詳細情報が表示されます。
-            """)
+        
+        # フッター
+        st.markdown("---")
+        st.caption("© 2025 ZOOM会議スケジューラー")
 
 # サービス管理クラス
 class ServiceManager:
@@ -364,3 +277,116 @@ class ServiceManager:
         return None
 
 # アプリケーションメインクラス
+class AIServicesApp:
+    def __init__(self):
+        self.service_manager = ServiceManager()
+        
+        # サービスの登録
+        self.service_manager.register_service(TextGenerationService())
+        self.service_manager.register_service(ImageCaptioningService())
+        self.service_manager.register_service(ZoomSchedulerService())
+        
+        # セッション状態の初期化
+        if 'current_service' not in st.session_state:
+            st.session_state.current_service = None
+    
+    def run(self):
+        """アプリケーションを実行"""
+        # サイドバーの設定
+        self._setup_sidebar()
+        
+        # メインコンテンツ
+        if st.session_state.current_service:
+            service = self.service_manager.get_service_by_name(st.session_state.current_service)
+            if service:
+                service.render()
+        else:
+            self._render_home()
+    
+    def _setup_sidebar(self):
+        """サイドバーのセットアップ"""
+        with st.sidebar:
+            st.title("AI Web Services")
+            st.markdown("---")
+            
+            # ホームボタン
+            if st.button("🏠 ホーム"):
+                st.session_state.current_service = None
+                st.rerun()
+            
+            st.markdown("## サービス一覧")
+            
+            # サービス一覧の表示
+            for service in self.service_manager.get_services():
+                if st.button(f"{service.icon} {service.name}"):
+                    st.session_state.current_service = service.name
+                    st.rerun()
+    
+    def _render_home(self):
+        """ホーム画面のレンダリング"""
+        st.title("🌟 AI Web サービス デモサイト by Synapse Works")
+        st.markdown("""
+        AIIを活用した多機能Webサービスへようこそ！
+        サイドバーから利用したいサービスを選択してください。
+        """)
+        
+        # サービスカードの表示
+        services = self.service_manager.get_services()
+        
+        # 2列のレイアウト
+        cols = st.columns(2)
+        for i, service in enumerate(services):
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div style="
+                    border: 1px solid #ddd;
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 10px 0;
+                    background-color: white;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                ">
+                    <h3>{service.icon} {service.name}</h3>
+                    <p>{service.description}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+# アプリ実行
+if __name__ == "__main__":
+    # ページ設定
+    st.set_page_config(
+        page_title="AI Web Services",
+        page_icon="🤖",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # カスタムCSS
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f5f7f9;
+    }
+    .stButton button {
+        width: 100%;
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+    h1, h2, h3 {
+        color: #1e3a8a;
+    }
+    .sidebar .stButton button {
+        background-color: #f0f0f0;
+        border: none;
+        text-align: left;
+        font-weight: normal;
+    }
+    .sidebar .stButton button:hover {
+        background-color: #e0e0e0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # アプリ実行
+    app = AIServicesApp()
+    app.run()
