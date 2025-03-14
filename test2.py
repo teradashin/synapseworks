@@ -13,6 +13,7 @@ from datetime import timedelta
 #test
 # OpenAI クライアントの初期化
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+webhookURL = st.secrets["WEBHOOK_URL"]
 
 # サービスの基本クラス（抽象クラス）
 class AIService(ABC):
@@ -217,7 +218,8 @@ class ZoomSchedulerService(AIService):
             }
             
             # Webhookエンドポイント
-            webhook_url = "https://hook.us2.make.com/bygwi3rthep6sv5tla5jqgqu7xuoyqhe"
+            #webhook_url = "https://hook.us2.make.com/bygwi3rthep6sv5tla5jqgqu7xuoyqhe"
+            webhook_url = webhookURL
             
             try:
                 # POSTリクエストの送信
