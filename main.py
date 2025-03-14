@@ -307,9 +307,9 @@ class AIServicesApp:
     
     def _render_home(self):
         """ホーム画面のレンダリング"""
-        st.title("🌟 AI Web サービス プラットフォーム")
+        st.title("🌟 AI Web サービス デモサイト by Synapse Works")
         st.markdown("""
-        OpenAI APIを活用した多機能Webサービスへようこそ！
+        AIIを活用した多機能Webサービスへようこそ！
         サイドバーから利用したいサービスを選択してください。
         """)
         
