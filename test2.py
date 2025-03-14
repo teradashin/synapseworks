@@ -359,6 +359,7 @@ if __name__ == "__main__":
         page_icon="🤖",
         layout="wide",
         initial_sidebar_state="expanded"
+        menu_items=None  # メニュー項目を非表示
     )
     
     # カスタムCSS
