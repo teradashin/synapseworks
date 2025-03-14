@@ -3,8 +3,4 @@ openai
 dotenv
 pandas
 plotly
-datetime
-timedelta
 requests
-abc
-typing
