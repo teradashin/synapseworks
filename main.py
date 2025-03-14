@@ -8,7 +8,7 @@ import plotly.express as px
 
 #test
 # OpenAI クライアントの初期化
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = OpenAI(api_key=st.secrets["OPENAI_KEY_API"])
 
 # サービスの基本クラス（抽象クラス）
 class AIService(ABC):
