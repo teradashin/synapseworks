@@ -314,7 +314,7 @@ class AIServicesApp:
             # ホームボタン
             if st.button("🏠 ホーム"):
                 st.session_state.current_service = None
-                st.rerun()
+                st.experimental_rerun()
             
             st.markdown("## サービス一覧")
             
@@ -322,7 +322,7 @@ class AIServicesApp:
             for service in self.service_manager.get_services():
                 if st.button(f"{service.icon} {service.name}"):
                     st.session_state.current_service = service.name
-                    st.rerun()
+                    st.experimental_rerun()
     
     def _render_home(self):
         """ホーム画面のレンダリング"""
